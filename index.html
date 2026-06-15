@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>油飯DD - 蝦皮分潤短網址官方 API 生成器</title>
+    <title>油飯DD - 蝦皮萬用分潤短網址生成器</title>
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; color: #333; background-color: #f7f7f7; }
         h2 { color: #ff5500; text-align: center; margin-bottom: 5px; }
@@ -25,9 +25,9 @@
 <body>
 
     <div class="container">
-        <h2>🦊 蝦皮短網址自動轉換器</h2>
+        <h2>🦊 蝦皮短網址自動轉換器 (萬用完全體)</h2>
         <p style="font-size: 13px; color: #666; text-align: center; margin-top: 0; margin-bottom: 20px;">
-            【油飯DD 專屬工具】支援貼上任何長網址或 <code>tw.shp.ee</code> 短網址，一鍵秒轉專屬分潤
+            【油飯DD 專屬工具】支援活動頁、商品頁，一鍵秒轉專屬分潤短網址
         </p>
         
         <textarea id="urlInput" placeholder="請貼上蝦皮網址...&#10;（支援多行輸入，長短網址皆可自動識別轉換）"></textarea>
@@ -44,51 +44,55 @@
     </div>
 
     <script>
-        // 已完美連線至你的 Cloudflare Worker 大腦
+        // 完美對接你的 Cloudflare Worker 網址
         const WORKER_URL = "https://gentle-snowflake-3f64.eric901118.workers.dev/"; 
 
         async function generateLinks() {
             const input = document.getElementById('urlInput').value;
-            const lines = input.split('\n').filter(line => line.trim() !== '');
+            // 💡 嚴格過濾：移除空白行、確保送出的每一行都是乾淨的網址
+            const lines = input.split('\n')
+                               .map(line => line.trim())
+                               .filter(line => line !== '');
+            
             const outputDiv = document.getElementById('linksOutput');
             const resultBox = document.getElementById('resultBox');
             
-            outputDiv.innerHTML = '正在透過蝦皮 API 產生專屬短網址中...'; 
-            resultBox.style.display = 'block';
-
             if (lines.length === 0) {
                 alert('請先輸入網址！');
-                resultBox.style.display = 'none';
                 return;
             }
+            
+            outputDiv.innerHTML = '<span style="color:#ff5500; font-weight:bold;">正在連線 Cloudflare 透過官方 API 轉換中...</span>'; 
+            resultBox.style.display = 'block';
 
             try {
-                // 呼叫你的 Cloudflare 安全後端
                 const response = await fetch(WORKER_URL, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        "Content-Type": "application/json"
+                    },
                     body: JSON.stringify({ targetUrls: lines })
                 });
 
                 const data = await response.json();
                 outputDiv.innerHTML = ''; // 清空讀取字樣
 
-                // 解析蝦皮 API 正式回傳的短網址結果
-                if (data && data.data && data.data.short_urls && data.data.short_urls.length > 0) {
-                    data.data.short_urls.forEach(shortUrl => {
+                // 根據新大腦規格解析回傳資料
+                if (response.ok && data && data.short_urls && data.short_urls.length > 0) {
+                    data.short_urls.forEach(shortUrl => {
                         const div = document.createElement('div');
                         div.className = 'link-item';
                         div.innerHTML = `🔗 <a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
                         outputDiv.appendChild(div);
                     });
                 } else {
-                    // 萬一蝦皮 API 報錯，顯示官方的錯誤訊息
-                    const errorMsg = data.message || '蝦皮 API 未正常回傳，請檢查環境變數中的金鑰是否填寫正確';
-                    outputDiv.innerHTML = `<span style="color:red;">轉換失敗：${errorMsg}</span>`;
+                    // 如果大腦報錯，直接把原因噴在畫面上方便排錯
+                    const errorMsg = data.error || '蝦皮系統拒絕轉換，請確認 Cloudflare 變數中的金鑰是否正確。';
+                    outputDiv.innerHTML = `<span style="color:red; font-weight:bold;">轉換失敗原因：${errorMsg}</span>`;
                 }
 
             } catch (err) {
-                outputDiv.innerHTML = `<span style="color:red;">系統連線錯誤：${err.message}</span>`;
+                outputDiv.innerHTML = `<span style="color:red; font-weight:bold;">系統連線失敗：${err.message}<br>請確認 Cloudflare Worker 是否正常運作。</span>`;
             }
         }
 
