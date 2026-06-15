@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>油飯DD - 蝦皮分潤萬用轉換器(急用版)</title>
+    <title>油飯DD - 蝦皮 9 折分潤短網址萬用生成器</title>
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; color: #333; background-color: #f7f7f7; }
         h2 { color: #ff5500; text-align: center; margin-bottom: 5px; }
@@ -16,104 +16,80 @@
         .clear-btn:hover { background-color: #555; }
         .result { margin-top: 25px; padding: 15px; background-color: #fff8f5; border: 1px solid #ffccb3; border-radius: 4px; word-break: break-all; }
         .result h3 { margin-top: 0; color: #e04400; font-size: 16px; }
-        .link-item { padding: 10px; border-bottom: 1px dashed #eee; font-size: 13px; }
+        .link-item { padding: 10px; border-bottom: 1px dashed #eee; font-size: 14px; }
         .link-item:last-child { border-bottom: none; }
-        a { color: #0066cc; text-decoration: none; font-weight: 500; }
+        a { color: #0066cc; text-decoration: none; font-weight: bold; }
         a:hover { text-decoration: underline; }
-        .notice-box { margin-top: 15px; padding: 12px; background-color: #edf2f7; border-left: 4px solid #4a5568; border-radius: 4px; font-size: 13px; line-height: 1.5; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>🦊 蝦皮分潤網址快速轉換器</h2>
+        <h2>🦊 蝦皮短網址自動轉換器 (完全體)</h2>
         <p style="font-size: 13px; color: #666; text-align: center; margin-top: 0; margin-bottom: 20px;">
-            【油飯DD 專屬急用版】支援多行輸入，自動注入分潤參數
+            【油飯DD 專屬工具】支援貼上任何長網址或 <code>tw.shp.ee</code> 短網址，一鍵秒轉專屬分潤
         </p>
         
-        <textarea id="urlInput" placeholder="請貼上蝦皮「長網址」...&#10;（例如：https://shopee.tw/product/...）"></textarea>
+        <textarea id="urlInput" placeholder="請貼上蝦皮網址...&#10;（支援多行輸入，長短網址皆可自動識別轉換）"></textarea>
         
         <div class="btn-group">
             <button onclick="clearAll()" class="clear-btn">清除內容</button>
-            <button onclick="generateLinks()">產生分潤連結</button>
+            <button onclick="generateLinks()">產生 s.shopee.tw 短網址</button>
         </div>
 
         <div class="result" id="resultBox" style="display: none;">
-            <h3>✨ 轉換成功！（請複製以下網址使用）：</h3>
+            <h3>✨ 轉換成功！專屬分潤短網址：</h3>
             <div id="linksOutput"></div>
-        </div>
-
-        <div class="notice-box">
-            <strong>💡 轉換小技巧（必看）：</strong><br>
-            1. 本工具目前專為<strong>「長網址」</strong>設計，轉換後分潤%100生效。<br>
-            2. 如果在 APP 複製出來是 <code>tw.shp.ee</code> 短網址，請先用瀏覽器打開該網址，等它跳轉到商品頁後，<strong>複製最上方那一長串網址</strong>拿來這裡轉換就可以囉！
         </div>
     </div>
 
     <script>
-        // 設定你的專屬 Member ID 
-        const MY_MEMBER_ID = "16305430001"; 
+        // 已完美連線至你的 Cloudflare Worker 大腦
+        const WORKER_URL = "https://gentle-snowflake-3f64.eric901118.workers.dev/"; 
 
-        function generateLinks() {
+        async function generateLinks() {
             const input = document.getElementById('urlInput').value;
             const lines = input.split('\n').filter(line => line.trim() !== '');
             const outputDiv = document.getElementById('linksOutput');
             const resultBox = document.getElementById('resultBox');
             
-            outputDiv.innerHTML = ''; 
+            outputDiv.innerHTML = '正在透過蝦皮 API 產生專屬短網址中...'; 
+            resultBox.style.display = 'block';
 
             if (lines.length === 0) {
                 alert('請先輸入網址！');
+                resultBox.style.display = 'none';
                 return;
             }
 
-            let hasShortUrl = false;
+            try {
+                // 呼叫你的 Cloudflare 安全後端
+                const response = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ targetUrls: lines })
+                });
 
-            lines.forEach(url => {
-                let cleanUrl = url.trim();
-                let finalUrl = cleanUrl;
+                const data = await response.json();
+                outputDiv.innerHTML = ''; // 清空讀取字樣
 
-                // 如果使用者不小心貼了短網址
-                if (cleanUrl.includes('shp.ee') || cleanUrl.includes('s.shopee.tw')) {
-                    hasShortUrl = true;
-                    const div = document.createElement('div');
-                    div.className = 'link-item';
-                    div.innerHTML = `<span style="color:red;">⚠️ 偵測到短網址 [${cleanUrl}]，請依下方說明換成「長網址」再貼入，以免分潤失效！</span>`;
-                    outputDiv.appendChild(div);
-                    return;
-                }
-
-                if (cleanUrl.includes('shopee.tw')) {
-                    try {
-                        // 清除網址原本可能帶有的他人的或舊的 utm 參數，強行覆蓋成你的
-                        let urlObj = new URL(cleanUrl);
-                        urlObj.searchParams.set('utm_source', `an_${MY_MEMBER_ID}`);
-                        urlObj.searchParams.set('utm_medium', 'affiliates');
-                        urlObj.searchParams.set('utm_campaign', 'default_share'); // 急用版通用分享標籤
-                        finalUrl = urlObj.toString();
-                    } catch (e) {
-                        const separator = cleanUrl.includes('?') ? '&' : '?';
-                        finalUrl = `${cleanUrl}${separator}utm_source=an_${MY_MEMBER_ID}&utm_medium=affiliates&utm_campaign=default_share`;
-                    }
-                    
-                    const div = document.createElement('div');
-                    div.className = 'link-item';
-                    div.innerHTML = `<a href="${finalUrl}" target="_blank">${finalUrl}</a>`;
-                    outputDiv.appendChild(div);
+                // 解析蝦皮 API 正式回傳的短網址結果
+                if (data && data.data && data.data.short_urls && data.data.short_urls.length > 0) {
+                    data.data.short_urls.forEach(shortUrl => {
+                        const div = document.createElement('div');
+                        div.className = 'link-item';
+                        div.innerHTML = `🔗 <a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
+                        outputDiv.appendChild(div);
+                    });
                 } else {
-                    // 非蝦皮網址不處理
-                    const div = document.createElement('div');
-                    div.className = 'link-item';
-                    div.innerHTML = `<span style="color:#999;">非蝦皮網址，跳過：${cleanUrl}</span>`;
-                    outputDiv.appendChild(div);
+                    // 萬一蝦皮 API 報錯，顯示官方的錯誤訊息
+                    const errorMsg = data.message || '蝦皮 API 未正常回傳，請檢查金鑰或網址是否正確';
+                    outputDiv.innerHTML = `<span style="color:red;">轉換失敗：${errorMsg}</span>`;
                 }
-            });
 
-            if (hasShortUrl) {
-                alert('注意！輸入的網址中包含「短網址」，短網址轉換可能會使分潤失效，建議換成商品長網址！');
+            } catch (err) {
+                outputDiv.innerHTML = `<span style="color:red;">系統連線錯誤：${err.message}</span>`;
             }
-
-            resultBox.style.display = 'block';
         }
 
         function clearAll() {
