@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>油飯DD - 蝦皮 9 折分潤短網址萬用生成器</title>
+    <title>油飯DD - 蝦皮分潤短網址官方 API 生成器</title>
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; color: #333; background-color: #f7f7f7; }
         h2 { color: #ff5500; text-align: center; margin-bottom: 5px; }
@@ -25,7 +25,7 @@
 <body>
 
     <div class="container">
-        <h2>🦊 蝦皮短網址自動轉換器 (完全體)</h2>
+        <h2>🦊 蝦皮短網址自動轉換器</h2>
         <p style="font-size: 13px; color: #666; text-align: center; margin-top: 0; margin-bottom: 20px;">
             【油飯DD 專屬工具】支援貼上任何長網址或 <code>tw.shp.ee</code> 短網址，一鍵秒轉專屬分潤
         </p>
@@ -83,7 +83,7 @@
                     });
                 } else {
                     // 萬一蝦皮 API 報錯，顯示官方的錯誤訊息
-                    const errorMsg = data.message || '蝦皮 API 未正常回傳，請檢查金鑰或網址是否正確';
+                    const errorMsg = data.message || '蝦皮 API 未正常回傳，請檢查環境變數中的金鑰是否填寫正確';
                     outputDiv.innerHTML = `<span style="color:red;">轉換失敗：${errorMsg}</span>`;
                 }
 
